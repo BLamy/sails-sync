@@ -171,7 +171,10 @@ In Webbrowser visit:
   <link rel="import" href="/bower_components/sails-sync/rest-api.html">
   <link rel="import" href="/bower_components/sails-sync/indexeddb-cache.html">
 ```
-
+Remove from `layout.ejs`
+```
+<script src="/js/dependencies/sails.io.js"></script>
+```
 
 **8) Declaratively define your model.**
 ```
