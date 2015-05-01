@@ -1,0 +1,340 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<script>
+  (function(){
+    var models = [];
+    var db;
+
+    Polymer({
+      is: 'indexeddb-cache',
+      properties: {
+        /**
+         * This is the indexed DB version number.
+         * If you change your model you must update this number.
+         */
+        version: {
+          type: Number,
+          value: 1,
+          reflectToAttribute: true,
+          required: true
+        },
+
+        upgrading: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        syncing: {
+          type: Boolean,
+          reflectToAttribute: true
+        }
+
+      },
+
+      openDB: function(cb) {
+        //----------------------------
+        // if the db is already open use it.
+        if (db){
+          if (cb) {
+            cb(db);
+          }
+          return;
+        }
+        if (!this.version){
+          console.error("Attempted to open the databse without the version being set. " +
+                        "This is most likely due to trying to query the database before the polymer is ready." +
+                        "To fix this make sure you watch for indexedDB-synced");
+        }
+
+
+        var that = this,
+          openRequest = indexedDB.open("sails-socket-cache", this.version);
+        //--------------------------------
+        // Register all the models as object stores
+        openRequest.onupgradeneeded = function (e) {
+          that.upgrading = true;
+
+          var store,
+            model,
+            index,
+            txn = e.currentTarget.transaction;
+
+          //--------------------------------
+          // Make sure all object stores that are children are added.
+          for (var i = 0; i < models.length; i++) {
+            model = models[i];
+            if (!db.objectStoreNames.contains(model.name)) {
+              store = e.target.result.createObjectStore(model.name, {keyPath: model.keyPath});
+              store.createIndex("updatedAt", "updatedAt", {unique: false});
+            } else {
+              store = txn.objectStore(model.name);
+            }
+            //--------------------------------
+            // Create Indexes.
+            if (model.indexes) {
+              for (var j = 0; j < model.indexes.length; j++) {
+                index = model.indexes[j];
+                if (!store.indexNames.contains(index.name)) {
+                  store.createIndex(index.name, index.name, index.attributes)
+                }
+              }
+            }
+          }
+
+          //--------------------------------
+          // Check to see if any models where removed If so delete the store.
+          // TODO: Remove models no longer needed
+        };
+
+        //---------------------------------
+        // Once the DB is open we need to get the latest data
+        openRequest.onsuccess = function (e) {
+          that.upgrading = false;
+          if (!db) {
+            that.fire("indexedDB-opened", {});
+            db = e.target.result;
+            that.syncModels(0);
+          }
+          if(cb) {
+            cb(db);
+          }
+        };
+
+
+        //---------------------------------
+        // Something went wrong
+        openRequest.onerror = function (e) {
+          this.upgrading = false;
+          console.log("Error");
+          //console.dir(e);
+        };
+      },
+
+      /**
+       *
+       */
+      domReady: function() {
+        this.openDB();
+      },
+
+      /**
+       *
+       */
+      ready: function(){
+        //---------------------------------
+        // Check for indexed DB support. This entire component is useless without it.
+        if (!window.indexedDB) {
+          console.error("IndexedDB not Supported by browser");
+          return;
+        }
+
+        //---------------------------------
+        // This is a work around for what appears to be a bug in Polymer .8,
+        // https://github.com/Polymer/polymer/issues/1460
+        var that = this;
+        document.addEventListener("DOMContentLoaded", function() {
+          that.domReady();
+        });
+      },
+
+      /**
+       * A function which does
+       * @param i - used for recursion if you are calling this method you should almost always start with 0
+       */
+      syncModels: function(i){
+        this.syncing = true;
+        var that = this;
+        var model = models[i];
+        io.socket.get('/'+model.name, {updatedAt: {'>': model.lastModified}}, function(data, jwres){
+          model.syncing = true;
+          var transaction = db.transaction([model.name], "readwrite");
+          var store = transaction.objectStore(model.name);
+          var request;
+
+          for (var j = 0; j < data.length; j++) {
+            var record = data[j];
+            request = store.put(record);
+            request.onerror = function(e) {
+              console.log("Error",e.target.error.name);
+              that.syncing = false;
+            };
+            request.onsuccess = function(e) {
+              //console.dir(e);
+
+              i+=1;
+              if (models.length > i) {
+                model.syncing = false;
+                that.syncModels(i);
+              } else {
+                that.syncing = false;
+                model.syncing = false;
+                that.fire("indexedDB-synced", {});
+              }
+//                io.models['Document'].lastModified = record.updatedAt;
+            };
+          }
+
+        });
+
+
+
+      },
+
+      /**
+       * This function
+       * @param model - properties to match on
+       */
+      registerModel: function(model){
+        var that = this;
+        models.push(model);
+        model.subscribe(this, {
+          created: function(data){
+            that.openDB(function(db) {
+              var transaction = db.transaction([model.name], "readwrite");
+              var store = transaction.objectStore(model.name);
+              var request = store.add(data.data);
+              request.onerror = function (e) {
+                console.log("Failed to create record from the server", e.target.error.name);
+              };
+              request.onsuccess = function (e) {
+                //console.dir(e);
+              };
+            });
+          },
+          updated: function(data){
+            that.openDB(function(db) {
+              var transaction = db.transaction([model.name], "readwrite");
+              var store = transaction.objectStore(model.name);
+              data.data[store.keyPath] = data[store.keyPath];
+              var request = store.put(data.data);
+              request.onerror = function (e) {
+                console.log("Failed to create record from the server", e.target.error.name);
+              };
+              request.onsuccess = function (e) {
+                //console.dir(e);
+              };
+            });
+          },
+          destroyed:function(data) {
+            that.openDB(function (db) {
+              var transaction = db.transaction([model.name], "readwrite");
+              var store = transaction.objectStore(model.name);
+              var request = store.delete(data[store.keyPath]);
+              request.onerror = function (e) {
+                console.log("Failed to create record from the server", e.target.error.name);
+              };
+              request.onsuccess = function (e) {
+                //console.dir(e);
+              };
+            });
+          }
+        });
+        if (this.parentNode.registerModel) {
+          this.parentNode.registerModel(model);
+        }
+      },
+
+      /**
+       * A generic find function.
+       * @param sender - The sails-model instance requesting data
+       * @param args - properties to match on
+       * @param cb(data, jwres) - call back which to be called
+       */
+      find: function(sender, args, cb){
+        this.openDB(function(db){
+          var transaction = db.transaction([sender.name],"readonly");
+          var store = transaction.objectStore(sender.name);
+          var index = store.index(Object.keys(args)[0]);
+
+          var request = index.openCursor(args[Object.keys(args)[0]]);
+          var results = [];
+
+          request.onerror = function (e) {
+            console.log("Failed to create record from the server", e.target.error.name);
+          };
+          request.onsuccess = function (e) {
+            var cursor = event.target.result;
+            if (cursor) {
+              results.push(cursor.value);
+              cursor.continue();
+            } else {
+              cb(results);
+            }
+          };
+        });
+      },
+
+      /**
+       * A generic find function.
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record you want
+       * @param cb(data, jwres) - call back which to be called
+       */
+      findOne: function(sender, args, cb){
+        this.openDB(function(db){
+          var transaction = db.transaction([sender.name],"readonly");
+          var store = transaction.objectStore(sender.name);
+          var index = store.index(Object.keys(args)[0]);
+
+          var request = index.get(args[Object.keys(args)[0]]);
+          request.onerror = function (e) {
+            console.log("Failed to create record from the server", e.target.error.name);
+          };
+          request.onsuccess = function (e) {
+            //console.dir(e);
+            cb(e.currentTarget.result)
+          };
+        });
+      },
+
+      /**
+       * Client updated something
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record being modified
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      update: function(sender, id, args, cb){
+        io.socket.put('/'+sender+"/"+id, args, function(){
+
+          if (cb) {
+            cb();
+          }
+        });
+      },
+
+      /**
+       * Client created something
+       * @param sender - The sails-model instance requesting data
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      create: function(sender, args, cb){
+        io.socket.post('/'+sender.name, args, function(){
+
+          if (cb) {
+            cb();
+          }
+        });
+      },
+
+      /**
+       * Client deleted something
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record you want destroy
+       * @param cb(data, jwres) - call back which to be called
+       */
+      destroy: function(sender, id, cb){
+        io.socket.delete('/'+sender+"/"+id, null, function(){
+
+          if (cb) {
+            cb();
+          }
+        });
+      }
+
+    });
+  })();
+
+</script>

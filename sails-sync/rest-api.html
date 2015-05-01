@@ -1,0 +1,122 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script>
+  (function(){
+    Polymer({
+      is: 'rest-api',
+      properties: {
+        name: {
+          type: String,
+          required: true
+        },
+
+        lastModified: {
+          type: Date,
+          reflectToAttribute: true,
+          value: new Date(0)
+        },
+
+        keyPath: {
+          type: String,
+          reflectToAttribute: true,
+          value: 'id'
+        },
+
+        indexes: {
+          type: Array
+        },
+
+        subscribers: {
+          type: Array
+        },
+
+        syncing: {
+          type: Boolean,
+          reflectToAttribute: true
+        }
+
+      },
+
+
+      ready: function(){
+        io.models = io.models || {};
+        io.models[this.name] = this;
+        this.subscribers = []
+        if (this.parentNode.registerModel) {
+          this.parentNode.registerModel(this);
+        }
+      },
+
+      /**
+       * A generic find function.
+       * @param args - properties to match on
+       * @param cb(data, jwres) - call back which to be called
+       */
+      find: function(args, cb){
+        this.parentNode.find(this, args, cb);
+      },
+
+      /**
+       * A generic find function.
+       * @param id - primary key of the record you want
+       * @param cb(data, jwres) - call back which to be called
+       */
+      findOne: function(id, cb){
+        this.parentNode.findOne(this, id, cb);
+      },
+
+      /**
+       *
+       * @param id - primary key of the record being modified
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      update: function(id, args, cb){
+        this.parentNode.update(this, id, args, cb);
+      },
+
+      /**
+       *
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      create: function(args, cb){
+        this.parentNode.create(this, args, cb);
+      },
+
+      /**
+       *
+       * @param id - primary key of the record you want destroy
+       * @param cb(data, jwres) - call back which to be called
+       */
+      destroy: function(id, cb){
+        this.parentNode.delete('/'+this.name+"/"+id, null, cb);
+      },
+
+      /**
+       * A place where you can register for changes from the server.
+       * Args must fullow the following format.
+       * @param listener Used to unsubscribe. (usually pass in this)
+       * @param args = {
+       *  created: function(data){}
+       *  updated: function(data){}
+       *  destroyed: function(data){}
+       * }
+       */
+      subscribe: function(listener, args){
+        this.subscribers.push({"observer": listener,
+                          "args": args});
+      },
+
+      /**
+       * A function to notify all subscribers of a change.
+       */
+      notifySubscribers: function(data){
+        this.subscribers.forEach(function(subscriber){
+          if (subscriber.args[data.verb]) {
+            subscriber.args[data.verb].apply(subscriber.observer, [data]);
+          }
+        });
+      }
+    });
+  })();
+</script>

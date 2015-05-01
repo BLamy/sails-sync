@@ -1,0 +1,85 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="sails.io.js"></script>
+<script>
+  (function(){
+    var models = [];
+    Polymer({
+      is: 'sails-socket',
+      properties: {
+        // TODO: add a reflected property for isConnected
+        // TODO: reflected property for Username
+        // TODO: CSFR
+      },
+
+      /**
+       * This function
+       * @param model - properties to match on
+       */
+      registerModel: function(model){
+        models.push(model);
+        io.socket.on(model.name.toLowerCase(), function(data){
+          model.notifySubscribers(data);
+        });
+        if (this.parentNode.registerModel) {
+          this.parentNode.registerModel(this);
+        }
+      },
+
+      /**
+       * A generic find function.
+       * @param sender - The sails-model instance requesting data
+       * @param args - properties to match on
+       * @param cb(data, jwres) - call back which to be called
+       */
+      find: function(sender, args, cb){
+        io.socket.get('/'+sender.name, args, cb);
+      },
+
+      /**
+       * A generic find function.
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record you want
+       * @param cb(data, jwres) - call back which to be called
+       */
+      findOne: function(sender, id, cb){
+        io.socket.get('/'+sender.name+'/'+id, null, cb);
+      },
+
+      /**
+       *
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record being modified
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      update: function(sender, id, args, cb){
+        io.socket.put('/'+sender+"/"+id, args, cb);
+      },
+
+      /**
+       *
+       * @param sender - The sails-model instance requesting data
+       * @param args
+       * @param cb(data, jwres) - call back which to be called
+       */
+      create: function(sender, args, cb){
+        io.socket.post('/'+sender.name, args, cb);
+      },
+
+      /**
+       *
+       * @param sender - The sails-model instance requesting data
+       * @param id - primary key of the record you want destroy
+       * @param cb(data, jwres) - call back which to be called
+       */
+      destroy: function(sender, id, cb){
+        io.socket.delete('/'+sender+"/"+id, null, cb);
+      }
+
+      //TODO: Add support for Associations:
+      // 'add to',: http://sailsjs.org/#!/documentation/reference/blueprint-api/Add.html
+      // 'remove from',: http://sailsjs.org/#!/documentation/reference/blueprint-api/Remove.html
+      // 'populate where': http://sailsjs.org/#!/documentation/reference/blueprint-api/Populate.html
+    });
+  })();
+</script>
