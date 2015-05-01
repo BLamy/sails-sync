@@ -86,4 +86,23 @@ Can be accessed from `io.models["User"]`.
 * `key-path` - AKA Primary Key of the indexeddb ObjectStore. Default is `id`.
 * `indexes` - A **double quoted json** string, Config object for `store.createIndex(name, name, args)`
 
+# Usage:
+1) Create a new sails project
+> sails new projectName
 
+2) Create a `.bowerrc` file in your project root
+```
+{
+  "directory": "assets/bower_components"
+}
+```
+
+2) Install Polymer
+> bower install --save Polymer/polymer#^0.8
+
+3) Install sails-sync
+> bower install --save https://github.com/BLamy/sails-sync.git
+
+
+
+## Roadmap
