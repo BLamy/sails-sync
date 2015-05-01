@@ -87,29 +87,39 @@ Can be accessed from `io.models["User"]`.
 * `indexes` - A **double quoted json** string, Config object for `store.createIndex(name, name, args)`
 
 # Usage:
-1) Create a new sails project
+**1) Create a new sails project**
 > sails new projectName
 
-2) Create a `.bowerrc` file in your project root
+
+**2) Create a `.bowerrc` file in your project root**
 ```
 {
   "directory": "assets/bower_components"
 }
 ```
 
-3) Install Polymer 0.8
+
+**3) Install Polymer 0.8**
 > bower install --save Polymer/polymer#^0.8
 
-4) Install sails-sync
+
+
+**4) Install sails-sync**
 > bower install --save https://github.com/BLamy/sails-sync.git
 
-5) Create a sails API to sync
+
+
+**5) Create a sails API to sync**
 > sails generate api user
 
-6) Add data to your endpoint
+
+
+**6) Add data to your endpoint**
 > http://localhost:1337/user/create?name=foo
 
-7) Import all webcomponents in `layout.ejs`, Add the following between `<head>`
+
+
+**7) Import all webcomponents in `layout.ejs`, Add the following between `<head>`**
 ```
   <script src="/bower_components/platform/platform.js"></script>
   <link rel="import" href="/bower_components/sails-sync/sails-socket.html">
@@ -117,7 +127,9 @@ Can be accessed from `io.models["User"]`.
   <link rel="import" href="/bower_components/sails-sync/indexeddb-cache.html">
 ```
 
-8) Declaratively define your model. 
+
+
+**8) Declaratively define your model. **
 ```
 <sails-socket>
   <indexeddb-cache version="1">
@@ -127,7 +139,10 @@ Can be accessed from `io.models["User"]`.
 ```
 All users should be syncing to an indexedDB named `sails-sync-cache`, in an object store names `User` with an index on `name`. The `key-path` for user will be assumed to be `id` since it was not supplied.
 
-9) Query your models
+
+
+
+**9) Query your models**
 ```
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
     io.models["User"].findOne({
@@ -140,6 +155,8 @@ All users should be syncing to an indexedDB named `sails-sync-cache`, in an obje
 Models within an `indexeddb-cache` must wait until `indexedDB-opened` before sending request to the database. This is unfortuantly some time after domReady because we need to wait for polymer to parse the tags. 
 
 Models within `sails-socket` will hit the server on a find request. Models within an `indexeddb-cache` will query the database.
+
+
 
 ## Roadmap
 1) Querying is limited. The objective is to get querying as close to waterline as possible. That way the same query can be used on server side as can be used on client side. 
