@@ -66,7 +66,7 @@ Can be accessed from `io.models["User"]`.
     }
   }
   ```
-  > Note: sails-sync cannot track destroyed records when it is not connected. There for it is recommended to employ a "soft delete". 
+  > Note: sails-sync cannot track destroyed records when it is not connected. Therefore it is recommended to employ a "soft delete". 
   
 ## Indexeddb-cache
 `indexeddb-cache` can wrap `rest-api` models. Upon socket connection the models inside of `indexeddb-cache` will sync all data at ```get /?where={updatedAt:{'>': `$last_updated`}}```
@@ -115,6 +115,13 @@ Can be accessed from `io.models["User"]`.
 
 
 **6) Add data to your endpoint**
+
+At CLI:
+
+> sails lift
+
+In Webbrowser visit:
+
 > http://localhost:1337/user/create?name=foo
 
 
@@ -128,8 +135,7 @@ Can be accessed from `io.models["User"]`.
 ```
 
 
-
-**8) Declaratively define your model. **
+**8) Declaratively define your model.**
 ```
 <sails-socket>
   <indexeddb-cache version="1">
@@ -140,9 +146,11 @@ Can be accessed from `io.models["User"]`.
 All users should be syncing to an indexedDB named `sails-sync-cache`, in an object store names `User` with an index on `name`. The `key-path` for user will be assumed to be `id` since it was not supplied.
 
 
+**9) Run Grunt**
+> grunt
 
 
-**9) Query your models**
+**10) Query your models**
 ```
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
     io.models["User"].findOne({
