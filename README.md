@@ -137,6 +137,7 @@ Models within `sails-socket` will hit the server on a find request. Models withi
 
 **3) Install Polymer 0.8**
 > bower install --save webcomponentsjs
+
 > bower install --save Polymer/polymer#^0.8
 
 
