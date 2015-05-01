@@ -136,6 +136,7 @@ Models within `sails-socket` will hit the server on a find request. Models withi
 
 
 **3) Install Polymer 0.8**
+> bower install --save webcomponentsjs
 > bower install --save Polymer/polymer#^0.8
 
 
@@ -164,7 +165,7 @@ In Webbrowser visit:
 
 **7) Import all webcomponents in `layout.ejs`, Add the following between `<head>`**
 ```
-  <script src="/bower_components/platform/platform.js"></script>
+  <script src="/bower_components/webcomponentsjs/webcomponents.min.js"></script>
   <link rel="import" href="/bower_components/sails-sync/sails-socket.html">
   <link rel="import" href="/bower_components/sails-sync/rest-api.html">
   <link rel="import" href="/bower_components/sails-sync/indexeddb-cache.html">
