@@ -85,12 +85,13 @@ Can be accessed from `io.models["User"]`.
 `rest-api's` take on a couple new attributes when they are in an `indexeddb-cache`.
 * `key-path` - AKA Primary Key of the indexeddb ObjectStore. Default is `id`.
 * `indexes` - A **double quoted json** string, Config object for `store.createIndex(name, name, args)`
-* 
+
 
 ## Querying
 The goal of sails-sync is to develop an API which represents waterline. This will allow developers to use the same query on the frontend and the backend. 
 
 *Querying is currently limited*
+
 Find One - find one object using a Unique index.
 ```
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
