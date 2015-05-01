@@ -1,7 +1,7 @@
 # sails-sync
 Sails Sync is a project aimed at syncing rest endpoints into an indexed db using a simple api. 
 
-**Models are defined declaratively** using polymer web components. A `io.models` property is added to the global object created by `sails.io.js`. 
+**Models are defined declaratively** using polymer web components. An `io.models` property is added to the global object created by `sails.io.js`. 
 
 > sails-socket has a dependency on the sails.io.js file included in sails.js. If you used `sails new ` to create your project you already have it.
 
