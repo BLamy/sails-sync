@@ -1,14 +1,14 @@
 # sails-sync
 Sails Sync is a project aimed at syncing rest endpoints into an indexed db using a simple api. 
 
-**Models are defined declaritively** using polymer webcomponents. A `models` property is added to the `io` global object created by `sails.io.js`. 
+**Models are defined declaratively** using polymer web components. A `io.models` property is added to the global object created by `sails.io.js`. 
 
 > sails-socket has a dependency on the sails.io.js file included in sails.js. If you used `sails new ` to create your project you already have it.
 
-Sails-sync contains 3 web components which can be used togeather to sync data from a REST API directly into a IndexedDB.
-* `sails-socket` - establishes a socket connection to your server. This component is opioninated at Sails but if a simular API is mimicked could work with any REST API.
-* `indexeddb-cache` - Truditionally put inside of sails socket. All models within `indexeddb-cache` will sync all data at `get /`, and subscribe for changes
-* `rest-api` - These are your models. They do alot! Read on.
+Sails-sync contains 3 web components which can be used together to sync data from a REST API directly into a IndexedDB.
+* `sails-socket` - establishes a socket connection to your server. This component is opinionated at Sails but if a similar API is mimicked could work with any REST API.
+* `indexeddb-cache` - Traditionally put inside of sails socket. All models within `indexeddb-cache` will sync all data at `get /`, and subscribe for changes
+* `rest-api` - These are your models. They do a lot! Read on.
 
 ## Pub / Sub
 Models placed inside a socket can take advantage of sails Pub/Sub system.
