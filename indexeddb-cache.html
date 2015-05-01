@@ -64,7 +64,7 @@
           // Make sure all object stores that are children are added.
           for (var i = 0; i < models.length; i++) {
             model = models[i];
-            if (!db.objectStoreNames.contains(model.name)) {
+            if (!e.target.result.objectStoreNames.contains(model.name)) {
               store = e.target.result.createObjectStore(model.name, {keyPath: model.keyPath});
               store.createIndex("updatedAt", "updatedAt", {unique: false});
             } else {
