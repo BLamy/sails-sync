@@ -12,14 +12,14 @@ Sails-sync contains 3 web components which can be used together to sync data fro
 
 ## Pub / Sub
 Models placed inside a socket can take advantage of sails Pub/Sub system.
-```
+```html
 <sails-socket>
   <rest-api name="User"></rest-api>
 </sails-socket>
 ```
 
 Can be accessed from `io.models["User"]`. 
-  ```
+  ```javascript
   io.models["User"].subscribe(this, { 
       created: function(data){},
       updated: function(data){},
@@ -32,7 +32,7 @@ Can be accessed from `io.models["User"]`.
   The `data` object being the following for each:
   
   **created**
-  ```
+  ```javascript
   {
     id: 1,
     verb: "created",
@@ -43,7 +43,7 @@ Can be accessed from `io.models["User"]`.
   ```
   
   **updated**
-  ```
+  ```javascript
   {
     id: 1,
     verb: "updated",
@@ -57,7 +57,7 @@ Can be accessed from `io.models["User"]`.
   ```
   
   **destroyed**
-  ```
+  ```javascript
   {
     id: 1,
     verb: "destroyed",
@@ -73,7 +73,7 @@ Can be accessed from `io.models["User"]`.
   
 
 
-```
+```html
 <sails-socket>
     <rest-api name="User"></rest-api>
     <indexeddb-cache version="26">
@@ -93,7 +93,7 @@ The goal of sails-sync is to develop an API which represents waterline. This wil
 *Querying is currently limited*
 
 Find One - find one object using a Unique index.
-```
+```javascript
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
     io.models["User"].findOne({
       name: "BLamy"
@@ -104,7 +104,7 @@ Find One - find one object using a Unique index.
   ```
   
 Find - find all objects using non unique index
-```
+```javascript
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
     io.models["User"].find({
       usergroup: "admin"
@@ -128,7 +128,7 @@ Models within `sails-socket` will hit the server on a find request. Models withi
 
 
 **2) Create a `.bowerrc` file in your project root**
-```
+```javascript
 {
   "directory": "assets/bower_components"
 }
@@ -165,19 +165,19 @@ In Webbrowser visit:
 
 
 **7) Import all webcomponents in `layout.ejs`, Add the following between `<head>`**
-```
+```html
   <script src="/bower_components/webcomponentsjs/webcomponents.min.js"></script>
   <link rel="import" href="/bower_components/sails-sync/sails-socket.html">
   <link rel="import" href="/bower_components/sails-sync/rest-api.html">
   <link rel="import" href="/bower_components/sails-sync/indexeddb-cache.html">
 ```
 Remove from `layout.ejs`
-```
+```html
 <script src="/js/dependencies/sails.io.js"></script>
 ```
 
 **8) Declaratively define your model.**
-```
+```html
 <sails-socket>
   <indexeddb-cache version="1">
     <rest-api name="User" indexes='[{"name":"name", "attributes":{"unique":true}}]'></rest-api>
@@ -192,7 +192,7 @@ All users should be syncing to an indexedDB named `sails-sync-cache`, in an obje
 
 
 **10) Query your models**
-```
+```javascript
   document.querySelector("indexeddb-cache").addEventListener("indexedDB-opened", function(e) {
     io.models["User"].findOne({
       name: "BLamy"
